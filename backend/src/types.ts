@@ -31,9 +31,29 @@ export interface Case {
   updatedAt: string;
   reporterIdentityId: string;
   assignedCaseOfficerId?: string;
+  assignedCaseOfficerName?: string;
   assignedReviewerId?: string;
+  assignedReviewerName?: string;
+  isAnonymous?: boolean;
+  e2eePolicyGranted?: boolean;
   /** Set while a closure is proposed and awaiting the required independent approval. */
   pendingClosureRequestId?: string;
+}
+
+export interface AnonymousSession {
+  accessKey: string;
+  pin: string;
+  caseId: string;
+  createdAt: string;
+}
+
+export interface PrequalifiedPersonnel {
+  id: string;
+  name: string;
+  role: "case-officer" | "independent-reviewer";
+  organization: string;
+  title: string;
+  email: string;
 }
 
 /**

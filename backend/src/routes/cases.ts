@@ -6,6 +6,11 @@ import {
   reporterIdentities,
   reviewAssignments,
   closureRequests,
+  caseEvents,
+  evidence,
+  prequalifiedPersonnel,
+  createAnonymousSession,
+  verifyAnonymousSession,
   recordEvent,
   activeAssignmentFor,
   nextReferenceNumber,
@@ -14,7 +19,6 @@ import { assertTransition, InvalidTransitionError } from "../stateMachine.js";
 import type { Case, ClosureRequest } from "../types.js";
 
 export const casesRouter = Router();
-casesRouter.use(authenticate);
 
 function redactCase(c: Case) {
   // Never includes reporterIdentityId's contents — only the opaque link, which callers resolve
@@ -40,7 +44,168 @@ function canSeeCase(req: { userRoles?: string[]; user?: { sub: string } }, c: Ca
   return false;
 }
 
-// Create a report. Reporter only.
+// ==============================================================================================
+// PUBLIC ROUTES (No authentication required)
+// ==============================================================================================
+
+// 1. Get prequalified roster of officers and reviewers
+casesRouter.get("/roster/personnel", (_req, res) => {
+  res.json(prequalifiedPersonnel);
+});
+
+// 2. Submit anonymous report without authentication
+casesRouter.post("/anonymous", (req, res) => {
+  const { category, summary, description, severity, evidenceText, filename } = req.body ?? {};
+  if (!category || !summary || !description || !severity) {
+    res.status(400).json({ error: "category, summary, description, severity are required" });
+    return;
+  }
+
+  const caseId = nanoid();
+  const identityId = nanoid();
+  const now = new Date().toISOString();
+
+  reporterIdentities.set(identityId, {
+    id: identityId,
+    caseId,
+    pseudonym: "Anonymous Whistleblower",
+    reporterSubject: "anonymous-public",
+    disclosurePreference: "anonymous",
+  });
+
+  const newCase: Case = {
+    id: caseId,
+    referenceNumber: nextReferenceNumber(),
+    category,
+    summary,
+    description,
+    status: "SUBMITTED",
+    severity,
+    createdAt: now,
+    updatedAt: now,
+    reporterIdentityId: identityId,
+    isAnonymous: true,
+  };
+  cases.set(caseId, newCase);
+
+  const { accessKey, pin } = createAnonymousSession(caseId);
+
+  // If evidenceText was provided during anonymous intake, store it
+  if (evidenceText) {
+    const evId = nanoid();
+    evidence.set(evId, {
+      id: evId,
+      caseId,
+      filename: filename || "anonymous-evidence.txt",
+      ciphertext: evidenceText,
+      mimeType: "text/plain",
+      uploadedBySubject: "anonymous",
+      uploadedAt: now,
+    });
+  }
+
+  recordEvent({
+    caseId,
+    actorSubject: "anonymous",
+    actorRole: "reporter",
+    action: "CASE_SUBMITTED_ANONYMOUS",
+    outcome: "ALLOWED",
+  });
+
+  res.status(201).json({
+    case: redactCase(newCase),
+    receipt: {
+      accessKey,
+      pin,
+      referenceNumber: newCase.referenceNumber,
+      createdAt: now,
+    },
+  });
+});
+
+// 3. Track anonymous report with accessKey and pin
+casesRouter.post("/anonymous/track", (req, res) => {
+  const { accessKey, pin } = req.body ?? {};
+  if (!accessKey || !pin) {
+    res.status(400).json({ error: "accessKey and pin are required" });
+    return;
+  }
+  const session = verifyAnonymousSession(accessKey, pin);
+  if (!session) {
+    res.status(401).json({ error: "Invalid Access Key or PIN" });
+    return;
+  }
+  const c = cases.get(session.caseId);
+  if (!c) {
+    res.status(404).json({ error: "Case not found" });
+    return;
+  }
+  const events = caseEvents.filter((e) => e.caseId === c.id);
+  const evList = [...evidence.values()].filter((e) => e.caseId === c.id);
+
+  res.json({
+    case: redactCase(c),
+    events,
+    evidenceCount: evList.length,
+    evidenceItems: evList.map((e) => ({
+      id: e.id,
+      filename: e.filename,
+      uploadedAt: e.uploadedAt,
+      uploadedBySubject: e.uploadedBySubject,
+    })),
+  });
+});
+
+// 4. Append note or evidence to anonymous report
+casesRouter.post("/anonymous/append", (req, res) => {
+  const { accessKey, pin, statement, filename, ciphertext } = req.body ?? {};
+  if (!accessKey || !pin) {
+    res.status(400).json({ error: "accessKey and pin are required" });
+    return;
+  }
+  const session = verifyAnonymousSession(accessKey, pin);
+  if (!session) {
+    res.status(401).json({ error: "Invalid Access Key or PIN" });
+    return;
+  }
+  const c = cases.get(session.caseId);
+  if (!c) {
+    res.status(404).json({ error: "Case not found" });
+    return;
+  }
+
+  const now = new Date().toISOString();
+  if (statement || ciphertext) {
+    const evId = nanoid();
+    evidence.set(evId, {
+      id: evId,
+      caseId: c.id,
+      filename: filename || "supplementary-statement.txt",
+      ciphertext: ciphertext || statement || "",
+      mimeType: "text/plain",
+      uploadedBySubject: "anonymous",
+      uploadedAt: now,
+    });
+  }
+
+  c.updatedAt = now;
+  recordEvent({
+    caseId: c.id,
+    actorSubject: "anonymous",
+    actorRole: "reporter",
+    action: "ANONYMOUS_INFORMATION_APPENDED",
+    outcome: "ALLOWED",
+  });
+
+  res.json({ success: true, updatedAt: now });
+});
+
+// ==============================================================================================
+// AUTHENTICATED ROUTES
+// ==============================================================================================
+casesRouter.use(authenticate);
+
+// Create a report. Reporter only (Authenticated mode).
 casesRouter.post("/", requireRole("reporter"), (req, res) => {
   const { category, summary, description, severity, disclosurePreference, pseudonym } = req.body ?? {};
   if (!category || !summary || !description || !severity) {
@@ -71,6 +236,7 @@ casesRouter.post("/", requireRole("reporter"), (req, res) => {
     createdAt: now,
     updatedAt: now,
     reporterIdentityId: identityId,
+    isAnonymous: false,
   };
   cases.set(caseId, newCase);
 
@@ -91,9 +257,7 @@ casesRouter.get("/", (req, res) => {
   res.json(visible.map(redactCase));
 });
 
-// Case detail. 404 (not 403) when the case exists but the caller has no assignment — this
-// deliberately does not distinguish "doesn't exist" from "not authorized" to avoid confirming
-// case IDs to an unauthorized caller (PROJECT_OVERVIEW.md section 6, scenario 2 & 3).
+// Case detail. 404 (not 403) when the case exists but the caller has no assignment.
 casesRouter.get("/:id", (req, res) => {
   const c = cases.get(req.params.id);
   if (!c || !canSeeCase(req, c)) {
@@ -115,6 +279,12 @@ casesRouter.post("/:id/claim", requireRole("case-officer"), (req, res) => {
     return;
   }
   c.assignedCaseOfficerId = req.user!.sub;
+  const officerUser = prequalifiedPersonnel.find((p) => p.id === req.user!.sub);
+  if (officerUser) {
+    c.assignedCaseOfficerName = `${officerUser.name} (${officerUser.organization})`;
+  } else {
+    c.assignedCaseOfficerName = req.user!.sub;
+  }
   c.updatedAt = new Date().toISOString();
   recordEvent({
     caseId: c.id,
@@ -126,6 +296,39 @@ casesRouter.post("/:id/claim", requireRole("case-officer"), (req, res) => {
   res.json(redactCase(c));
 });
 
+// Assign a specific case officer. Case officer or admin.
+casesRouter.post(
+  "/:id/assign-officer",
+  requireRole("case-officer", "admin"),
+  (req, res) => {
+    const c = cases.get(req.params.id);
+    if (!c) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+    const { officerSubject, officerName } = req.body ?? {};
+    if (!officerSubject) {
+      res.status(400).json({ error: "officerSubject is required" });
+      return;
+    }
+
+    const found = prequalifiedPersonnel.find((p) => p.id === officerSubject);
+    c.assignedCaseOfficerId = officerSubject;
+    c.assignedCaseOfficerName = officerName || (found ? `${found.name} (${found.organization})` : officerSubject);
+    c.updatedAt = new Date().toISOString();
+
+    recordEvent({
+      caseId: c.id,
+      actorSubject: req.user!.sub,
+      actorRole: req.userRoles!.includes("admin") ? "admin" : "case-officer",
+      action: `CASE_OFFICER_ASSIGNED:${officerSubject}`,
+      outcome: "ALLOWED",
+    });
+
+    res.json(redactCase(c));
+  },
+);
+
 // Assign an independent reviewer to a case. Case officer or admin.
 casesRouter.post(
   "/:id/assign-reviewer",
@@ -136,7 +339,7 @@ casesRouter.post(
       res.status(404).json({ error: "Not found" });
       return;
     }
-    const { reviewerSubject, expiresAt } = req.body ?? {};
+    const { reviewerSubject, reviewerName, expiresAt } = req.body ?? {};
     if (!reviewerSubject) {
       res.status(400).json({ error: "reviewerSubject is required" });
       return;
@@ -153,6 +356,8 @@ casesRouter.post(
       expiresAt,
     });
     c.assignedReviewerId = reviewerSubject;
+    const found = prequalifiedPersonnel.find((p) => p.id === reviewerSubject);
+    c.assignedReviewerName = reviewerName || (found ? `${found.name} (${found.organization})` : reviewerSubject);
     c.updatedAt = new Date().toISOString();
 
     recordEvent({
@@ -163,7 +368,7 @@ casesRouter.post(
       outcome: "ALLOWED",
     });
 
-    res.status(201).json({ assignmentId });
+    res.status(201).json({ assignmentId, case: redactCase(c) });
   },
 );
 
@@ -189,6 +394,31 @@ casesRouter.post(
     });
 
     res.status(204).send();
+  },
+);
+
+// Grant E2EE policy flag for case (record keeping)
+casesRouter.post(
+  "/:id/grant-e2ee",
+  requireRole("case-officer", "admin"),
+  (req, res) => {
+    const c = cases.get(req.params.id);
+    if (!c) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+    c.e2eePolicyGranted = true;
+    c.updatedAt = new Date().toISOString();
+
+    recordEvent({
+      caseId: c.id,
+      actorSubject: req.user!.sub,
+      actorRole: req.userRoles!.includes("admin") ? "admin" : "case-officer",
+      action: "E2EE_POLICY_GRANTED_FOR_CASE",
+      outcome: "ALLOWED",
+    });
+
+    res.json({ success: true, case: redactCase(c) });
   },
 );
 

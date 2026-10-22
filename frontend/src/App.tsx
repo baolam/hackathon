@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   useTideCloak,
   useAuthCallback,
@@ -11,10 +11,12 @@ import { Dashboard } from "./pages/Dashboard";
 import { SubmitReport } from "./pages/SubmitReport";
 import { CaseDetail } from "./pages/CaseDetail";
 import { E2EEDemo } from "./pages/E2EEDemo";
+import { AnonymousIntake } from "./pages/AnonymousIntake";
+import { AnonymousTracker } from "./pages/AnonymousTracker";
 import { Layout } from "./components/Layout";
+import { LoadingScreen } from "./components/LoadingScreen";
 
 // IMPORTANT: isInitializing must be checked BEFORE Authenticated/Unauthenticated guards.
-// Unauthenticated renders during init because the user is not yet authenticated.
 function App() {
   const { isInitializing } = useTideCloak();
 
@@ -34,26 +36,70 @@ function App() {
     return <p>Redirecting...</p>;
   }
 
-  if (isInitializing) return <p>Initializing TideCloak...</p>;
+  if (isInitializing) return <LoadingScreen />;
 
   return (
-    <>
-      <Authenticated>
-        <BrowserRouter>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/submit" element={<SubmitReport />} />
-              <Route path="/cases/:id" element={<CaseDetail />} />
-              <Route path="/evidence" element={<E2EEDemo />} />
-            </Routes>
-          </Layout>
-        </BrowserRouter>
-      </Authenticated>
-      <Unauthenticated>
-        <Landing />
-      </Unauthenticated>
-    </>
+    <BrowserRouter>
+      <Routes>
+        {/* Public Routes — Accessible to everyone without login */}
+        <Route path="/anonymous-report" element={<AnonymousIntake />} />
+        <Route path="/track" element={<AnonymousTracker />} />
+
+        {/* Root Route: Landing portal for unauthenticated, Dashboard for authenticated */}
+        <Route
+          path="/"
+          element={
+            <>
+              <Authenticated>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </Authenticated>
+              <Unauthenticated>
+                <Landing />
+              </Unauthenticated>
+            </>
+          }
+        />
+
+        {/* Workspace Management Routes */}
+        <Route
+          path="/cases"
+          element={
+            <Layout>
+              <Dashboard />
+            </Layout>
+          }
+        />
+        <Route
+          path="/cases/:id"
+          element={
+            <Layout>
+              <CaseDetail />
+            </Layout>
+          }
+        />
+        <Route
+          path="/submit"
+          element={
+            <Layout>
+              <SubmitReport />
+            </Layout>
+          }
+        />
+        <Route
+          path="/evidence"
+          element={
+            <Layout>
+              <E2EEDemo />
+            </Layout>
+          }
+        />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

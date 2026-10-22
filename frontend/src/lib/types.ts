@@ -23,8 +23,50 @@ export interface CaseRecord {
   updatedAt: string;
   reporterIdentityId: string;
   assignedCaseOfficerId?: string;
+  assignedCaseOfficerName?: string;
   assignedReviewerId?: string;
+  assignedReviewerName?: string;
+  isAnonymous?: boolean;
+  e2eePolicyGranted?: boolean;
   pendingClosureRequestId?: string;
+}
+
+export interface PrequalifiedPersonnel {
+  id: string;
+  name: string;
+  role: "case-officer" | "independent-reviewer";
+  organization: string;
+  title: string;
+  email: string;
+}
+
+export interface AnonymousReceipt {
+  accessKey: string;
+  pin: string;
+  referenceNumber: string;
+  createdAt: string;
+}
+
+export interface EvidenceItem {
+  id: string;
+  caseId: string;
+  filename: string;
+  ciphertext: string;
+  mimeType: string;
+  uploadedBySubject: string;
+  uploadedAt: string;
+}
+
+export interface AnonymousTrackResult {
+  case: CaseRecord;
+  events: CaseEvent[];
+  evidenceCount: number;
+  evidenceItems: {
+    id: string;
+    filename: string;
+    uploadedAt: string;
+    uploadedBySubject: string;
+  }[];
 }
 
 export interface CaseEvent {

@@ -50,8 +50,40 @@ function expressReqAsFetchLike(req: Request) {
   };
 }
 
-/** Verifies the JWT and, for sender-constrained (DPoP) tokens, the DPoP proof. Fails closed. */
+/**
+ * Verifies the JWT and, for sender-constrained (DPoP) tokens, the DPoP proof. Fails closed.
+ *
+ * A real bearer token is ALWAYS verified for real, regardless of TRUSTVOICE_DEV_MODE — a
+ * genuinely logged-in caller's identity must never be silently swapped for the dev-mode one.
+ * The dev-mode header bypass only applies when there is NO bearer token at all: the Demo
+ * Switcher stands in for a session that doesn't exist yet, it never overrides one that does.
+ */
 export async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
+  if (req.headers.authorization) {
+    try {
+      const token = extractToken(req.headers.authorization);
+      const jwt = await verifyTideJWT(token);
+
+      // The realm template issues DPoP-bound tokens by default (dpop.bound.access.tokens=true).
+      // An unbound token here is a downgrade attempt or a misconfigured client — reject it (I-12).
+      if (!jwt.cnf?.jkt) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+      await verifyDpop(expressReqAsFetchLike(req), token, jwt);
+
+      req.user = jwt;
+      req.userRoles = appRolesOf(jwt);
+      req.authMode = "tide";
+      next();
+      return;
+    } catch (err) {
+      if (err instanceof DpopError) console.warn(`[auth] DPoP check failed: ${err.message}`);
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+  }
+
   if (DEV_MODE) {
     const user = devModeUser(req);
     if (!user) {
@@ -65,28 +97,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     return;
   }
 
-  try {
-    const token = extractToken(req.headers.authorization);
-    const jwt = await verifyTideJWT(token);
-
-    // The realm template issues DPoP-bound tokens by default (dpop.bound.access.tokens=true).
-    // An unbound token here is a downgrade attempt or a misconfigured client — reject it (I-12).
-    if (jwt.cnf?.jkt) {
-      await verifyDpop(expressReqAsFetchLike(req), token, jwt);
-    } else {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
-    req.user = jwt;
-    req.userRoles = appRolesOf(jwt);
-    req.authMode = "tide";
-    next();
-  } catch (err) {
-    const message = err instanceof DpopError ? "Unauthorized" : "Unauthorized";
-    res.status(401).json({ error: message });
-    return;
-  }
+  res.status(401).json({ error: "Unauthorized" });
 }
 
 export function requireRole(...roles: AppRole[]) {
