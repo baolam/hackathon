@@ -22,7 +22,10 @@ export const DEMO_IDENTITIES: DemoIdentity[] = [
   },
   {
     role: "independent-reviewer",
-    subject: "reviewer-a",
+    // Must match the "reviewer-a" roster entry's id in backend/src/store.ts (the real reviewer1
+    // subject), not a placeholder — otherwise a case assigned via the roster dropdown never
+    // matches this demo identity and silently disappears from the reviewer's case list.
+    subject: "3058d433-f886-4b99-a110-601ca8f73763",
     label: "⚖️ Independent Reviewer",
     description: "Dr. Do Hoang Long - Bar Association: decrypts E2EE evidence and approves case conclusions",
   },
@@ -60,8 +63,8 @@ export function DemoRoleSwitcher() {
   return (
     <div
       style={{
-        background: "linear-gradient(90deg, #1e293b 0%, #0f172a 100%)",
-        borderBottom: "1px solid #334155",
+        background: "var(--gold-wash)",
+        borderBottom: "1px solid var(--gold)",
         padding: "8px 16px",
         display: "flex",
         alignItems: "center",
@@ -73,23 +76,23 @@ export function DemoRoleSwitcher() {
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <span
           style={{
-            background: "#3b82f6",
-            color: "#fff",
+            background: "var(--gold)",
+            color: "var(--paper-raised)",
             padding: "2px 6px",
             borderRadius: 4,
             fontWeight: "bold",
             fontSize: "0.75rem",
           }}
         >
-          DEMO SWITCHER
+          Demo switcher
         </span>
-        <span style={{ color: "#94a3b8" }}>
-          Acting as: <strong style={{ color: "#f8fafc" }}>{activeIdentity.label}</strong> ({activeIdentity.description})
+        <span style={{ color: "var(--ink-dim)" }}>
+          Acting as: <strong style={{ color: "var(--ink)" }}>{activeIdentity.label}</strong> ({activeIdentity.description})
         </span>
       </div>
 
       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-        <span style={{ color: "#64748b" }}>Switch role:</span>
+        <span style={{ color: "var(--ink-dim)" }}>Switch role:</span>
         {DEMO_IDENTITIES.map((item) => (
           <button
             key={item.role}
@@ -97,9 +100,9 @@ export function DemoRoleSwitcher() {
             style={{
               padding: "4px 8px",
               fontSize: "0.78rem",
-              background: currentRole === item.role ? "#3b82f6" : "#1e293b",
-              color: currentRole === item.role ? "#fff" : "#cbd5e1",
-              border: "1px solid " + (currentRole === item.role ? "#60a5fa" : "#475569"),
+              background: currentRole === item.role ? "var(--gold)" : "var(--paper-raised)",
+              color: currentRole === item.role ? "var(--paper-raised)" : "var(--ink-dim)",
+              border: "1px solid " + (currentRole === item.role ? "var(--gold)" : "var(--line-strong)"),
               borderRadius: 4,
               cursor: "pointer",
             }}

@@ -12,8 +12,9 @@ export function Landing() {
           <div
             style={{
               display: "inline-block",
-              background: "rgba(59, 130, 246, 0.15)",
-              color: "var(--accent)",
+              background: "var(--seal-wash)",
+              color: "var(--seal-deep)",
+              border: "1px solid var(--seal)",
               padding: "4px 12px",
               borderRadius: 20,
               fontSize: "0.85rem",
@@ -81,9 +82,9 @@ export function Landing() {
         </div>
 
         {/* 3 Core Pillars */}
-        <div className="card" style={{ background: "rgba(255,255,255,0.02)" }}>
-          <h4 style={{ margin: "0 0 12px", color: "var(--accent)", textTransform: "uppercase", fontSize: "0.8rem" }}>
-            Core Protection Principles of TrustVoice
+        <div className="card" style={{ background: "var(--paper-sunken)" }}>
+          <h4 style={{ margin: "0 0 12px", color: "var(--accent)", fontSize: "0.95rem" }}>
+            Core protection principles of TrustVoice
           </h4>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, fontSize: "0.85rem", color: "var(--text-dim)", lineHeight: 1.5 }}>
             <div>

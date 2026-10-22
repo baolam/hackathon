@@ -249,24 +249,24 @@ export function CaseDetail() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <h3 style={{ margin: 0 }}>👥 Personnel Assignment &amp; Delegation</h3>
           {c.e2eePolicyGranted ? (
-            <span style={{ background: "#065f46", color: "#34d399", padding: "2px 8px", borderRadius: 4, fontSize: "0.75rem", fontWeight: "bold" }}>
-              ✓ E2EE POLICY GRANTED
+            <span style={{ background: "var(--seal-wash)", color: "var(--seal-deep)", border: "1px solid var(--seal)", padding: "2px 8px", borderRadius: 4, fontSize: "0.75rem", fontWeight: "bold" }}>
+              ✓ E2EE policy granted
             </span>
           ) : (
-            <span style={{ background: "#78350f", color: "#fbbf24", padding: "2px 8px", borderRadius: 4, fontSize: "0.75rem" }}>
-              ⏳ PENDING E2EE POLICY SIGNING
+            <span style={{ background: "var(--gold-wash)", color: "var(--gold)", border: "1px solid var(--gold)", padding: "2px 8px", borderRadius: 4, fontSize: "0.75rem" }}>
+              ⏳ Pending E2EE policy signing
             </span>
           )}
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           {/* Case Officer Box */}
-          <div style={{ background: "rgba(255,255,255,0.03)", padding: 14, borderRadius: 6, border: "1px solid var(--border)" }}>
+          <div style={{ background: "var(--paper-sunken)", padding: 14, borderRadius: 6, border: "1px solid var(--border)" }}>
             <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase" }}>
               1. Internal Case Officer
             </div>
-            <div style={{ fontWeight: 600, margin: "6px 0 10px", color: c.assignedCaseOfficerName ? "var(--text)" : "var(--text-dim)" }}>
-              {c.assignedCaseOfficerName || "No officer assigned yet"}
+            <div style={{ fontWeight: 600, margin: "6px 0 10px", color: c.assignedCaseOfficerId ? "var(--text)" : "var(--text-dim)" }}>
+              {c.assignedCaseOfficerId ? "✓ Officer assigned" : "No officer assigned yet"}
             </div>
 
             {(isAdmin || isCaseOfficer) && (
@@ -281,12 +281,12 @@ export function CaseDetail() {
           </div>
 
           {/* Independent Reviewer Box */}
-          <div style={{ background: "rgba(255,255,255,0.03)", padding: 14, borderRadius: 6, border: "1px solid var(--border)" }}>
+          <div style={{ background: "var(--paper-sunken)", padding: 14, borderRadius: 6, border: "1px solid var(--border)" }}>
             <div style={{ fontSize: "0.75rem", color: "var(--accent)", textTransform: "uppercase" }}>
               2. Independent Reviewer (Ombudsman)
             </div>
-            <div style={{ fontWeight: 600, margin: "6px 0 10px", color: c.assignedReviewerName ? "#10b981" : "var(--text-dim)" }}>
-              {c.assignedReviewerName || "No reviewer assigned yet"}
+            <div style={{ fontWeight: 600, margin: "6px 0 10px", color: c.assignedReviewerId ? "var(--seal)" : "var(--text-dim)" }}>
+              {c.assignedReviewerId ? "✓ Reviewer assigned" : "No reviewer assigned yet"}
             </div>
 
             {(isAdmin || isCaseOfficer) && (
@@ -306,8 +306,8 @@ export function CaseDetail() {
           <div style={{ marginTop: 16, padding: 12, background: "rgba(59, 130, 246, 0.08)", borderRadius: 6 }}>
             <strong style={{ color: "var(--accent)" }}>Grant E2EE Evidence Decryption Rights (Tide Relationship Policy)</strong>
             <div style={{ fontSize: "0.85rem", color: "var(--text-dim)", marginTop: 4, marginBottom: 10 }}>
-              Sign a genuine policy inside the Tide Enclave to delegate exclusive decryption authority to reviewer{" "}
-              <em>{c.assignedReviewerName}</em>. Paste the reviewer's <code>tideUserKey</code> (obtained from the 🔐 E2EE
+              Sign a genuine policy inside the Tide Enclave to delegate exclusive decryption authority to the
+              assigned Independent Reviewer. Paste the reviewer's <code>tideUserKey</code> (obtained from the 🔐 E2EE
               Showcase page after they sign in to Tide at least once).
             </div>
             <div style={{ display: "flex", gap: 8 }}>
@@ -338,7 +338,7 @@ export function CaseDetail() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 14 }}>
             {evidenceList.map((ev) => (
-              <div key={ev.id} style={{ padding: 12, background: "rgba(255,255,255,0.02)", borderRadius: 6, border: "1px solid var(--border)" }}>
+              <div key={ev.id} style={{ padding: 12, background: "var(--paper-sunken)", borderRadius: 6, border: "1px solid var(--border)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                   <div>
                     <strong>📄 {ev.filename}</strong>
@@ -353,15 +353,15 @@ export function CaseDetail() {
 
                 {/* Plaintext decrypted */}
                 {decryptedText[ev.id] && (
-                  <div style={{ marginTop: 12, padding: 10, background: "rgba(16, 185, 129, 0.1)", border: "1px solid #10b981", borderRadius: 4, color: "#10b981", fontSize: "0.9rem" }}>
-                    <strong>✅ DECRYPTION SUCCESSFUL:</strong>
-                    <div style={{ marginTop: 4, color: "#f8fafc" }}>{decryptedText[ev.id]}</div>
+                  <div style={{ marginTop: 12, padding: 10, background: "var(--seal-wash)", border: "1px solid var(--seal)", borderRadius: 4, color: "var(--seal-deep)", fontSize: "0.9rem" }}>
+                    <strong>✅ Decryption successful:</strong>
+                    <div style={{ marginTop: 4, color: "var(--ink)" }}>{decryptedText[ev.id]}</div>
                   </div>
                 )}
 
                 {/* Cryptographic denial */}
                 {decryptErrors[ev.id] && (
-                  <div style={{ marginTop: 12, padding: 10, background: "rgba(239, 68, 68, 0.1)", border: "1px solid #ef4444", borderRadius: 4, color: "#f87171", fontSize: "0.85rem" }}>
+                  <div style={{ marginTop: 12, padding: 10, background: "var(--wax-wash)", border: "1px solid var(--wax)", borderRadius: 4, color: "var(--wax)", fontSize: "0.85rem" }}>
                     <strong>⛔ CRYPTOGRAPHIC DENIAL:</strong>
                     <div style={{ marginTop: 4 }}>{decryptErrors[ev.id]}</div>
                   </div>
@@ -442,7 +442,7 @@ export function CaseDetail() {
         </div>
 
         {c.status === "PENDING_CLOSURE_APPROVAL" && (
-          <div style={{ marginTop: 14, padding: 12, background: "rgba(245, 158, 11, 0.1)", border: "1px solid #f59e0b", borderRadius: 6, fontSize: "0.85rem", color: "#fbbf24" }}>
+          <div style={{ marginTop: 14, padding: 12, background: "var(--gold-wash)", border: "1px solid var(--gold)", borderRadius: 6, fontSize: "0.85rem", color: "var(--gold)" }}>
             ⏳ <strong>Pending Closure Approval:</strong> An internal officer has proposed closing this case. Under the <em>Anti-Cover-up</em> protocol, the case <strong>cannot be closed</strong> until the assigned Independent Reviewer reviews and approves (or rejects) the closure.
           </div>
         )}
@@ -503,7 +503,7 @@ function AssignOfficerDropdown({
       >
         {officers.map((o) => (
           <option key={o.id} value={o.id}>
-            {o.name} — {o.organization}
+            {o.title} — {o.organization}
           </option>
         ))}
       </select>
@@ -542,7 +542,7 @@ function AssignReviewerDropdown({
       >
         {reviewers.map((r) => (
           <option key={r.id} value={r.id}>
-            {r.name} — {r.organization}
+            {r.title} — {r.organization}
           </option>
         ))}
       </select>
@@ -649,7 +649,7 @@ function DisclosureDecisionPanel({
   const pending = disclosures.filter((d) => d.status === "PENDING");
   if (pending.length === 0) return null;
   return (
-    <div className="card" style={{ marginTop: 20, borderColor: "#3b82f6" }}>
+    <div className="card" style={{ marginTop: 20, borderColor: "var(--seal)" }}>
       <h3 style={{ margin: "0 0 8px", color: "var(--accent)" }}>🔔 Identity Disclosure Request Pending Your Approval</h3>
       <p style={{ color: "var(--text-dim)", fontSize: "0.85rem" }}>
         Only you (the Reporter) hold the authority to approve or refuse revealing your real identity to investigators.

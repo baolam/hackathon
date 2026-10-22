@@ -10,37 +10,37 @@ type Slide = {
 const SLIDES: Slide[] = [
   {
     icon: "🛡️",
-    accent: "var(--glow-teal)",
+    accent: "var(--seal)",
     title: "TrustVoice",
     body: "Protected, independently reviewed whistleblowing — no single administrator or organization holds unilateral control.",
   },
   {
     icon: "🤝",
-    accent: "var(--glow-violet)",
+    accent: "var(--gold)",
     title: "Safe Escalation Without Conflict of Interest",
     body: "External independent reviewers access strictly assigned cases — never the organization's entire internal dataset.",
   },
   {
     icon: "🔐",
-    accent: "var(--glow-amber)",
+    accent: "var(--wax)",
     title: "Threshold End-to-End Encryption",
     body: "Evidence is encrypted directly inside the browser. Servers only store ciphertext — root DB admins cannot read it.",
   },
   {
     icon: "🪪",
-    accent: "var(--glow-pink)",
+    accent: "var(--seal-deep)",
     title: "DPoP — Cryptographically Bound Tokens",
     body: "Access tokens are bound to browser private keys (RFC 9449). Stolen tokens cannot be replayed.",
   },
   {
     icon: "⚖️",
-    accent: "var(--glow-teal)",
+    accent: "var(--seal)",
     title: "Governance via Tide Enclave",
     body: "All privilege changes must be signed inside the Tide enclave — preventing unilateral tampering or cover-ups by admins.",
   },
   {
     icon: "🎭",
-    accent: "var(--glow-violet)",
+    accent: "var(--gold)",
     title: "3 Demo Personas",
     body: "reporter1 submits & encrypts evidence · admin is cryptographically denied decryption (by design) · reviewer1 is delegated and decrypts successfully.",
   },

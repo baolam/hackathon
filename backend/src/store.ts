@@ -30,7 +30,19 @@ export const signedPolicies = new Map<string, SignedPolicy>();
 // Anonymous Sessions keyed by accessKey
 export const anonymousSessions = new Map<string, AnonymousSession>();
 
-// Prequalified Roster of Case Officers and Independent Reviewers
+// canSeeCase() (routes/cases.ts) matches on the REAL TideCloak JWT `sub` — the realm user's UUID,
+// identical to its admin-API `id` — not a human-readable placeholder. These must be the actual
+// `reporter1` / `reviewer1` user IDs from the bootstrapped realm, overridable via env for other
+// environments.
+const DEMO_REPORTER1_SUBJECT = process.env.DEMO_REPORTER1_SUBJECT ?? "ab730bd2-dfbc-46b5-95d5-b5497ec1ee9c";
+const DEMO_REVIEWER1_SUBJECT = process.env.DEMO_REVIEWER1_SUBJECT ?? "3058d433-f886-4b99-a110-601ca8f73763";
+
+// Prequalified Roster of Case Officers and Independent Reviewers. The "reviewer-a" slot (Dr. Do
+// Hoang Long) is presented in the assign-reviewer UI as the real bootstrapped `reviewer1` realm
+// user, so its id must BE that user's real subject — otherwise assigning them from this roster
+// records a reviewerSubject that never matches `reviewer1`'s actual JWT `sub`, and canSeeCase()
+// hides the case from them forever (the exact bug this was fixed for demo-case-1 below, but the
+// roster itself still had the stale placeholder id).
 export const prequalifiedPersonnel: PrequalifiedPersonnel[] = [
   {
     id: "officer-1",
@@ -49,7 +61,7 @@ export const prequalifiedPersonnel: PrequalifiedPersonnel[] = [
     email: "officer2@trustvoice.internal",
   },
   {
-    id: "reviewer-a",
+    id: DEMO_REVIEWER1_SUBJECT,
     name: "Dr. Do Hoang Long",
     role: "independent-reviewer",
     organization: "Independent Bar Association & Integrity Oversight",
@@ -66,14 +78,9 @@ export const prequalifiedPersonnel: PrequalifiedPersonnel[] = [
   },
 ];
 
-// Seed demo-case-1 so the README E2EE demo works out of the box.
-// canSeeCase() (routes/cases.ts) matches on the REAL TideCloak JWT `sub` — the realm user's UUID,
-// identical to its admin-API `id` — not a human-readable placeholder. These must be the actual
-// `reporter1` / `reviewer1` user IDs from the bootstrapped realm, overridable via env for other
-// environments. Previously hardcoded as "reporter-1" / "reviewer-a", which never matched any real
-// token and made demo-case-1 404 for anyone but `admin` (who bypasses the identity check).
-const DEMO_REPORTER1_SUBJECT = process.env.DEMO_REPORTER1_SUBJECT ?? "ab730bd2-dfbc-46b5-95d5-b5497ec1ee9c";
-const DEMO_REVIEWER1_SUBJECT = process.env.DEMO_REVIEWER1_SUBJECT ?? "3058d433-f886-4b99-a110-601ca8f73763";
+// Seed demo-case-1 so the README E2EE demo works out of the box. Previously hardcoded as
+// "reporter-1" / "reviewer-a", which never matched any real token and made demo-case-1 404 for
+// anyone but `admin` (who bypasses the identity check).
 const demoNow = new Date().toISOString();
 cases.set("demo-case-1", {
   id: "demo-case-1",

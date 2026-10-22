@@ -154,21 +154,21 @@ export function AnonymousTracker() {
           <div className="card">
             <h3 style={{ marginTop: 0 }}>👥 Assigned Personnel & Jurisdiction</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 12 }}>
-              <div style={{ padding: 12, background: "rgba(255,255,255,0.03)", borderRadius: 6, border: "1px solid var(--border)" }}>
+              <div style={{ padding: 12, background: "var(--paper-sunken)", borderRadius: 6, border: "1px solid var(--border)" }}>
                 <div style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>INTERNAL CASE OFFICER</div>
-                <div style={{ fontWeight: 600, marginTop: 4, color: result.case.assignedCaseOfficerName ? "var(--text)" : "var(--text-dim)" }}>
-                  {result.case.assignedCaseOfficerName || "In triage queue (Unassigned)"}
+                <div style={{ fontWeight: 600, marginTop: 4, color: result.case.assignedCaseOfficerId ? "var(--text)" : "var(--text-dim)" }}>
+                  {result.case.assignedCaseOfficerId ? "✓ Assigned (identity withheld for personnel protection)" : "In triage queue (Unassigned)"}
                 </div>
               </div>
-              <div style={{ padding: 12, background: "rgba(255,255,255,0.03)", borderRadius: 6, border: "1px solid var(--border)" }}>
+              <div style={{ padding: 12, background: "var(--paper-sunken)", borderRadius: 6, border: "1px solid var(--border)" }}>
                 <div style={{ fontSize: "0.8rem", color: "var(--accent)" }}>⚖️ INDEPENDENT REVIEWER (OMBUDSMAN)</div>
-                <div style={{ fontWeight: 600, marginTop: 4, color: result.case.assignedReviewerName ? "#10b981" : "var(--text-dim)" }}>
-                  {result.case.assignedReviewerName || "Pending appointment from Independent Roster"}
+                <div style={{ fontWeight: 600, marginTop: 4, color: result.case.assignedReviewerId ? "var(--seal)" : "var(--text-dim)" }}>
+                  {result.case.assignedReviewerId ? "✓ Assigned (identity withheld for personnel protection)" : "Pending appointment from Independent Roster"}
                 </div>
               </div>
             </div>
             {result.case.assignedReviewerId && (
-              <p style={{ fontSize: "0.85rem", color: "#10b981", marginTop: 12, marginBottom: 0 }}>
+              <p style={{ fontSize: "0.85rem", color: "var(--seal)", marginTop: 12, marginBottom: 0 }}>
                 🛡️ <em>Anti-Cover-up rule activated:</em> This case can only be formally concluded and closed upon independent approval from this reviewer.
               </p>
             )}

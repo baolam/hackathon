@@ -62,7 +62,7 @@ export function AnonymousIntake() {
       </p>
 
       {/* Security Guidance Box */}
-      <div className="card" style={{ background: "rgba(59, 130, 246, 0.08)", borderColor: "var(--accent)" }}>
+      <div className="card" style={{ background: "var(--seal-wash)", borderColor: "var(--accent)" }}>
         <h3 style={{ marginTop: 0, color: "var(--accent)" }}>🛡️ Security Guarantees & Safe Practices</h3>
         <ul style={{ margin: "8px 0 0 20px", padding: 0, fontSize: "0.9rem", color: "var(--text-dim)", lineHeight: 1.5 }}>
           <li><strong>Strict Privacy:</strong> No IP addresses or device identifiers are recorded in the case record.</li>
@@ -72,11 +72,11 @@ export function AnonymousIntake() {
       </div>
 
       {receipt ? (
-        <div className="card" style={{ borderColor: "#10b981", marginTop: 24 }}>
+        <div className="card" style={{ borderColor: "var(--seal)", marginTop: 24 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ fontSize: "2rem" }}>✅</span>
             <div>
-              <h2 style={{ margin: 0, color: "#10b981" }}>Anonymous Report Submitted Successfully!</h2>
+              <h2 style={{ margin: 0, color: "var(--seal)" }}>Anonymous Report Submitted Successfully!</h2>
               <p style={{ margin: "4px 0 0", color: "var(--text-dim)" }}>
                 Your report has been received and queued for independent triage.
               </p>
@@ -92,7 +92,7 @@ export function AnonymousIntake() {
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: "0.8rem", color: "var(--text-dim)", textTransform: "uppercase" }}>Secret Access Key</div>
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 4 }}>
-                <code style={{ fontSize: "1.25rem", color: "var(--accent)", padding: "4px 8px", background: "rgba(0,0,0,0.2)", borderRadius: 4 }}>
+                <code style={{ fontSize: "1.25rem", color: "var(--accent)", padding: "4px 8px", background: "var(--paper-sunken)", borderRadius: 4 }}>
                   {receipt.accessKey}
                 </code>
                 <button type="button" className="secondary" onClick={() => copyToClipboard(receipt.accessKey)}>
@@ -103,13 +103,13 @@ export function AnonymousIntake() {
 
             <div>
               <div style={{ fontSize: "0.8rem", color: "var(--text-dim)", textTransform: "uppercase" }}>Secret PIN (6 digits)</div>
-              <code style={{ fontSize: "1.25rem", color: "#f59e0b", padding: "4px 8px", background: "rgba(0,0,0,0.2)", borderRadius: 4, display: "inline-block", marginTop: 4 }}>
+              <code style={{ fontSize: "1.25rem", color: "var(--gold)", padding: "4px 8px", background: "var(--paper-sunken)", borderRadius: 4, display: "inline-block", marginTop: 4 }}>
                 {receipt.pin}
               </code>
             </div>
           </div>
 
-          <p style={{ color: "#ef4444", fontSize: "0.9rem", fontWeight: 500 }}>
+          <p style={{ color: "var(--wax)", fontSize: "0.9rem", fontWeight: 500 }}>
             ⚠️ Important Notice: Due to strict zero-knowledge anonymity, the system cannot recover a lost PIN. Please record it now!
           </p>
 

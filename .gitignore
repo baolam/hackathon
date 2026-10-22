@@ -15,4 +15,6 @@ data/tidecloak.json
 data/keycloakdb*
 .tide-pack/
 .claude/
+*.log
+
 

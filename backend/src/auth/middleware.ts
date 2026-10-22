@@ -59,6 +59,17 @@ function expressReqAsFetchLike(req: Request) {
  * Switcher stands in for a session that doesn't exist yet, it never overrides one that does.
  */
 export async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
+  // `casesRouter`, `disclosureRouter`, `eventsRouter`, and `evidenceRouter` are all mounted at the
+  // same "/api/cases" prefix, and each calls `.use(authenticate)` unconditionally. A request whose
+  // matching route lives in a later router still passes through every earlier router's
+  // `authenticate` first (since `.use()` runs before route matching), so the SAME single-use DPoP
+  // proof gets verified more than once for one real request. Without this guard the second pass
+  // claims an already-claimed `jti` and fails as a false "replay" — not an attacker, just this
+  // app's own routing re-checking a request it already authenticated.
+  if (req.authMode) {
+    next();
+    return;
+  }
   if (req.headers.authorization) {
     try {
       const token = extractToken(req.headers.authorization);
