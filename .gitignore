@@ -1,0 +1,18 @@
+node_modules/
+dist/
+build/
+coverage/
+
+# Secrets — operator credentials never belong in the repo (AP-41).
+.env
+.env.local
+.env.*.local
+
+# Local TideCloak state and exported adapter/realm artifacts
+backend/data/tidecloak.json
+frontend/public/tidecloak.json
+data/tidecloak.json
+data/keycloakdb*
+.tide-pack/
+.claude/
+
