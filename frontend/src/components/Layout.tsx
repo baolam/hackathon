@@ -20,7 +20,9 @@ export function useAppRoles(): AppRole[] {
 export function Layout({ children }: { children: React.ReactNode }) {
   const { logout, getValueFromIdToken, authenticated } = useTideCloak();
   const roles = useAppRoles();
-  const username = getValueFromIdToken?.("preferred_username") ?? (localStorage.getItem("trustvoice_demo_subject") || "Demo User");
+  const username =
+    getValueFromIdToken?.("preferred_username") ??
+    (localStorage.getItem("trustvoice_demo_label") || localStorage.getItem("trustvoice_demo_subject") || "Demo User");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
